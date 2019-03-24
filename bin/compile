@@ -1,3 +1,41 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir> <env-dir>
 set -e
+
+# Used to format the output based on heroku guidelines
+# https://devcenter.heroku.com/articles/buildpack-api#style
+indent() {
+  RE="s/^/       /"
+  sed $SED_FLAG "$RE"
+}
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
+HUGO_VERSION="$(cat ${ENV_DIR}/HUGO_VERSION)"
+OUTPUT_DIR="$(cat ${ENV_DIR}/OUTPUT_DIR)"
+export HUGO_VERSION="${HUGO_VERSION:-0.54.0}"
+export OUTPUT_DIR="${OUTPUT_DIR:-static}"
+
+mkdir -vp "${OUTPUT_DIR}" | indent
+
+RELEASE_NAME="hugo_extended_${HUGO_VERSION}_Linux-64bit"
+FILE_NAME="${RELEASE_NAME}.tar.gz"
+HUGO_PACKAGE="https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/${FILE_NAME}"
+mkdir -p $CACHE_DIR
+
+echo -e "\n-----> Fetching Hugo ${HUGO_VERSION} binaries at ${HUGO_PACKAGE}"
+curl $HUGO_PACKAGE -L -s -o $CACHE_DIR/$FILE_NAME | indent
+
+mkdir -p $CACHE_DIR/$RELEASE_NAME | indent
+tar -zxvf $CACHE_DIR/$FILE_NAME -C $CACHE_DIR | indent
+mv -v $CACHE_DIR/hugo $BUILD_DIR/hugo | indent
+cd $BUILD_DIR
+./hugo version
+
+echo -e "\n-----> Building site."
+./hugo -v -d ${OUTPUT_DIR} | indent
+echo -e "\n-----> Site built."
+
+exit 0
