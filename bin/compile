@@ -16,21 +16,25 @@ export HUGO_VERSION="${HUGO_VERSION:-0.54.0}"
 export OUTPUT_DIR="${OUTPUT_DIR:-static}"
 
 mkdir -vp "${OUTPUT_DIR}" | indent
-mkdir -vp $CACHE_DIR | indent
-mkdir -vp $CACHE_DIR/$RELEASE_NAME | indent
+mkdir -vp "${CACHE_DIR}" | indent
+mkdir -vp "${CACHE_DIR}/${RELEASE_NAME}" | indent
 
-RELEASE_NAME="hugo_extended_${HUGO_VERSION}_Linux-64bit"
-FILE_NAME="${RELEASE_NAME}.tar.gz"
-HUGO_PACKAGE="https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/${FILE_NAME}"
+export RELEASE_NAME="hugo_extended_${HUGO_VERSION}_Linux-64bit"
+export FILE_NAME="${RELEASE_NAME}.tar.gz"
+export HUGO_PACKAGE="https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/${FILE_NAME}"
 
-if [ ! -e $CACHE_DIR/$FILE_NAME ]; then
+echo -e "\n-----> Using Hugo ${HUGO_VERSION}"
+
+if [ ! -e "${CACHE_DIR}/${FILE_NAME}" ]; then
   echo -e "\n-----> Fetching Hugo ${HUGO_VERSION} binaries at ${HUGO_PACKAGE}"
-  curl $HUGO_PACKAGE -L -s -o $CACHE_DIR/$FILE_NAME | indent
-  tar -zxvf $CACHE_DIR/$FILE_NAME -C $CACHE_DIR | indent
+  curl ${HUGO_PACKAGE} -L -s -o "${CACHE_DIR}/${FILE_NAME}" | indent
+  tar -zxvf "${CACHE_DIR}/${FILE_NAME}" -C "${CACHE_DIR}" | indent
+else
+  echo -e "\n-----> Using cached Hugo binary."
 fi
 
-mv -v $CACHE_DIR/hugo $BUILD_DIR/hugo | indent
-cd $BUILD_DIR || exit 10
+mv -v ${CACHE_DIR}/hugo ${BUILD_DIR}/hugo | indent
+cd ${BUILD_DIR} || exit 10
 ./hugo version
 
 echo -e "\n-----> Building site."
