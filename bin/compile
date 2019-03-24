@@ -25,12 +25,8 @@ FILE_NAME="${RELEASE_NAME}.tar.gz"
 HUGO_PACKAGE="https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/${FILE_NAME}"
 mkdir -p $CACHE_DIR
 
-if [ ! -e $CACHE_DIR/$FILE_NAME ]; then
-  echo -e "\n-----> Fetching Hugo ${HUGO_VERSION} binaries at ${HUGO_PACKAGE}"
-  curl $HUGO_PACKAGE -L -s -o $CACHE_DIR/$FILE_NAME | indent
-else
-  echo -e "\n-----> Using cached Hugo binary."
-fi
+echo -e "\n-----> Fetching Hugo ${HUGO_VERSION} binaries at ${HUGO_PACKAGE}"
+curl $HUGO_PACKAGE -L -s -o $CACHE_DIR/$FILE_NAME | indent
 
 mkdir -p $CACHE_DIR/$RELEASE_NAME | indent
 tar -zxvf $CACHE_DIR/$FILE_NAME -C $CACHE_DIR | indent
