@@ -28,11 +28,11 @@ echo -e "\n-----> Using Hugo ${HUGO_VERSION}"
 if [ ! -e "${CACHE_DIR}/${FILE_NAME}" ]; then
   echo -e "\n-----> Fetching Hugo ${HUGO_VERSION} binaries at ${HUGO_PACKAGE}"
   curl ${HUGO_PACKAGE} -L -s -o "${CACHE_DIR}/${FILE_NAME}" | indent
-  tar -zxvf "${CACHE_DIR}/${FILE_NAME}" -C "${CACHE_DIR}" | indent
 else
-  echo -e "\n-----> Using cached Hugo binary."
+  echo -e "\n-----> Using cached Hugo binary within ${CACHE_DIR/${FILE_NAME}."
 fi
 
+tar -zxvf "${CACHE_DIR}/${FILE_NAME}" -C "${CACHE_DIR}" | indent
 mv -v ${CACHE_DIR}/hugo ${BUILD_DIR}/hugo | indent
 cd ${BUILD_DIR} || exit 10
 ./hugo version
