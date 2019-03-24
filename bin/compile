@@ -15,7 +15,7 @@ OUTPUT_DIR="$(cat ${ENV_DIR}/OUTPUT_DIR)"
 export HUGO_VERSION="${HUGO_VERSION:-0.54.0}"
 export OUTPUT_DIR="${OUTPUT_DIR:-static}"
 
-mkdir -vp "${OUTPUT_DIR}" | indent
+mkdir -vp "${BUILD_DIR}/${OUTPUT_DIR}" | indent
 mkdir -vp "${CACHE_DIR}" | indent
 mkdir -vp "${CACHE_DIR}/${RELEASE_NAME}" | indent
 
