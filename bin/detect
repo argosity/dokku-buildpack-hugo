@@ -1,11 +1,3 @@
 #!/usr/bin/env bash
 
-build_dir=$1
-
-if [ ! -f "$build_dir/config.toml" ]; then
-  exit 1;
-fi
-
-echo '---> Hugo project detected.'
-
 exit 0;
