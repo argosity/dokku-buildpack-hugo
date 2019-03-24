@@ -38,7 +38,7 @@ cd ${BUILD_DIR} || exit 10
 ./hugo version
 
 echo -e "\n-----> Building site."
-./hugo -v -d ${OUTPUT_DIR} | indent
+./hugo -v -d "${BUILD_DIR}/${OUTPUT_DIR}" | indent
 echo -e "\n-----> Site built."
 
 exit 0
