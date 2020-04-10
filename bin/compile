@@ -10,7 +10,14 @@ export BUILD_DIR=$1
 export CACHE_DIR=$2
 export ENV_DIR=$3
 
-HUGO_VERSION="$(cat ${ENV_DIR}/HUGO_VERSION)"
+ls $3
+
+if test -f "${ENV_DIR}/HUGO_VERSION)"; then
+    HUGO_VERSION="$(cat ${ENV_DIR}/HUGO_VERSION)"
+else
+    HUGO_VERSION="0.68.3"
+fi
+
 OUTPUT_DIR="$(cat ${ENV_DIR}/OUTPUT_DIR)"
 export HUGO_VERSION="${HUGO_VERSION:-0.54.0}"
 export OUTPUT_DIR="${OUTPUT_DIR:-static}"
