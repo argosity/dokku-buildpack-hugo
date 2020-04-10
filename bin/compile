@@ -10,42 +10,47 @@ export BUILD_DIR=$1
 export CACHE_DIR=$2
 export ENV_DIR=$3
 
-ls $3
+export NGINX_ROOT=public
 
-if test -f "${ENV_DIR}/HUGO_VERSION)"; then
-    HUGO_VERSION="$(cat ${ENV_DIR}/HUGO_VERSION)"
+# Default Hugo version
+DEFAULT_HUGO_VERSION="0.68.3"
+
+# attempt to extract the HUGO_VERSION parameter form the Heroku configuration vars, fall back to the default version if unavailable
+if [ -d "$ENV_DIR" -a -e "$ENV_DIR/HUGO_VERSION" ]; then
+  export HUGO_VERSION=$(cat "$ENV_DIR/HUGO_VERSION")
 else
-    HUGO_VERSION="0.68.3"
+  echo "\n-----> HUGO VERSION not defined, using $DEFAULT_HUGO_VERSION."
+  export HUGO_VERSION=$DEFAULT_HUGO_VERSION
 fi
 
-OUTPUT_DIR="$(cat ${ENV_DIR}/OUTPUT_DIR)"
-export HUGO_VERSION="${HUGO_VERSION:-0.54.0}"
-export OUTPUT_DIR="${OUTPUT_DIR:-static}"
+# Hugo URL ( download from GH builds )
+RELEASE_NAME=hugo_${HUGO_VERSION}_Linux-64bit
+FILE_NAME=${RELEASE_NAME}.tar.gz
+HUGO_PACKAGE=https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/${FILE_NAME}
 
-mkdir -vp "${BUILD_DIR}/${OUTPUT_DIR}" | indent
-mkdir -vp "${CACHE_DIR}" | indent
-mkdir -vp "${CACHE_DIR}/${RELEASE_NAME}" | indent
-
-export RELEASE_NAME="hugo_extended_${HUGO_VERSION}_Linux-64bit"
-export FILE_NAME="${RELEASE_NAME}.tar.gz"
-export HUGO_PACKAGE="https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/${FILE_NAME}"
-
-echo -e "\n-----> Using Hugo ${HUGO_VERSION}"
-
-if [ ! -e "${CACHE_DIR}/${FILE_NAME}" ]; then
-  echo -e "\n-----> Fetching Hugo ${HUGO_VERSION} binaries at ${HUGO_PACKAGE}"
-  curl ${HUGO_PACKAGE} -L -s -o "${CACHE_DIR}/${FILE_NAME}" | indent
-else
-  echo -e "\n-----> Using cached Hugo binary within ${CACHE_DIR}/${FILE_NAME}."
+# Store the hugo package in the cache_dir ( persistent across builds )
+mkdir -p $CACHE_DIR
+if ! [ -e $CACHE_DIR/$FILE_NAME ]; then
+  echo "\n-----> Fetching Hugo ${HUGO_VERSION} binaries at ${HUGO_PACKAGE}"
+  curl $HUGO_PACKAGE -L -s -o $CACHE_DIR/$FILE_NAME | indent
 fi
 
-tar -zxvf "${CACHE_DIR}/${FILE_NAME}" -C "${CACHE_DIR}" | indent
-mv -v ${CACHE_DIR}/hugo ${BUILD_DIR}/hugo | indent
-cd ${BUILD_DIR} || exit 10
-./hugo version
+# Extract the binary in the working directory
+echo "\n-----> Extracting Hugo ${HUGO_VERSION} binaries to ${BUILD_DIR}"
+mkdir -p $CACHE_DIR/$RELEASE_NAME | indent
+tar -zxvf $CACHE_DIR/$FILE_NAME -C $CACHE_DIR | indent
+mv $CACHE_DIR/hugo $BUILD_DIR/hugo | indent
 
-echo -e "\n-----> Building site."
-./hugo -v -d "${BUILD_DIR}/${OUTPUT_DIR}" | indent
-echo -e "\n-----> Site built."
+# Fetch a theme specified in the .hugotheme file
+if [ -e $BUILD_DIR/.hugotheme ]; then
+  echo "\n-----> Getting the theme"
+  THEME_URL="`cat $BUILD_DIR/.hugotheme`"
+  rm -rf $BUILD_DIR/themes && mkdir $BUILD_DIR/themes && cd $BUILD_DIR/themes
+  git clone $THEME_URL
+fi
 
-exit 0
+# Build the site
+echo "\n-----> Building the site"
+cd $BUILD_DIR
+mkdir -p static | indent
+./hugo | indent
